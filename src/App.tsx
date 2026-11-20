@@ -1,5 +1,14 @@
 import { useEffect, useMemo, useState } from "react"
-import { Check, Copy, Download, Image as ImageIcon, ImageDown, Moon, Sun } from "lucide-react"
+import {
+  Check,
+  Copy,
+  Download,
+  Image as ImageIcon,
+  ImageDown,
+  Moon,
+  ExternalLink,
+  Sun,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -16,6 +25,12 @@ function textFromHash() {
   } catch {
     return hash.slice(0, MAX_TEXT_LENGTH)
   }
+}
+
+function linkForText(text: string) {
+  const url = new URL(window.location.href)
+  url.hash = encodeURIComponent(text)
+  return url.toString()
 }
 
 function downloadBlob(blob: Blob, filename: string) {
@@ -63,7 +78,7 @@ function renderPng(markup: string, width: number, height: number) {
 
 function App() {
   const [text, setText] = useState(textFromHash)
-  const [copied, setCopied] = useState<"png" | "svg" | null>(null)
+  const [copied, setCopied] = useState<"png" | "svg" | "link" | null>(null)
   const [dark, setDark] = useState(() => {
     try {
       return localStorage.getItem("phplogo-theme") === "dark"
@@ -125,6 +140,11 @@ function App() {
     setCopied("png")
   }
 
+  async function copyLink() {
+    await navigator.clipboard.writeText(linkForText(text))
+    setCopied("link")
+  }
+
   return (
     <main className="relative flex min-h-screen items-center justify-center bg-[#fafaf9] p-5 sm:p-8 dark:bg-neutral-950">
       <h1 className="sr-only">PHP logo</h1>
@@ -175,6 +195,10 @@ function App() {
             <Button size="sm" variant="outline" onClick={downloadSvg}>
               <Download />
               Download SVG
+            </Button>
+            <Button size="sm" variant="outline" onClick={copyLink}>
+              {copied === "link" ? <Check /> : <ExternalLink />}
+              {copied === "link" ? "Copied link" : "Share"}
             </Button>
           </div>
         </div>
